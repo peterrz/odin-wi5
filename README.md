@@ -11,9 +11,21 @@ Requirements
 
 For the agent/AP:
 
-- Click Modular Router.
-- Open vSwitch.
-- An ath9k driver based WiFi card.
+- Click Modular Router with the Odin elements added
+(https://github.com/Wi5/odin-agent).
+- Open vSwitch (an Openflow implementation running in the AP).
+- An ath9k driver based WiFi card. You should first patch it with the
+patch provided in https://github.com/lalithsuresh/odin-driver-patches
+
+
+Terminology
+-----------
+
+- Odin Master / Controller: the entity who controls the whole system. It
+is an application which runs on top of Floodlight Openflow controller.
+- Odin Agent / Access Point / AP: It runs Click Router with Odin elements,
+and communicates with the Odin Master in two ways: through a control socket,
+and through Openflow protocol.
 
 
 Building/Installation
@@ -51,8 +63,8 @@ To build the agent, copy the files in odin-agent/src/ to your Click source's
   $: cp src/* <click-folder>/elements/local
 ```
 
-Now build Click using your cross compiler. Don't forget to pass the --enable-
-local flag to Click's configure script.
+Now build Click using your cross compiler. Don't forget to pass the 
+"--enable-local" flag to Click's configure script.
 
 Generate a Click file for the agent, using your preferred values for the
 options:
@@ -62,6 +74,9 @@ options:
    <HW_ADDR_OF_WIFI_INTERFACE> <ODIN_MASTER_IP> <ODIN_MASTER_PORT>
      > agent.click
 ```
+- HW_ADDR_OF_WIFI_INTERFACE: The Physical MAC of the AP's wireless card.
+- ODIN_MASTER_PORT: The default port used by the Odin Master is 2819, 
+so ODIN_MASTER_PORT should be this one by default.
 
 Running Odin
 ------------
@@ -70,10 +85,16 @@ Master
 ------
 
 The master is to be run on a central server that has IP reachability to all
-APs in the system. The master expects the following configuration parameter
-to be set in the floodlight configuration file:
+APs in the system.
+The master expects the following configuration parameters to be set in the
+floodlight configuration file 
+/odin-master/src/main/resources/floodlightdefault.properties:
 
-* `net.floodlightcontroller.odin.master.OdinMaster.poolFile`:
+* `net.floodlightcontroller.odin.master.OdinMaster.poolFile`
+
+For example, add to the floodlightdefault.properties file the next line:
+
+* `net.floodlightcontroller.odin.master.OdinMaster.poolFile = ~/odin-master/poolfile
 
 This should point to a pool file, which are essentially slices. An example
 poolfile is as follows:
@@ -92,15 +113,22 @@ poolfile is as follows:
   APPLICATIONS net.floodlightcontroller.odin.applications.SimpleLoadBalancer
 ```
 
-Each pool is defined by a name, a list of IP address of physical APs, the
-list of SSIDs or NETWORKS to be announced, and a list of applications
+Each pool is defined by a name, a list of IP address of physical APs (NODES),
+the list of SSIDs or NETWORKS to be announced, and a list of applications
 that operate on that pool.
+
+For testing purposes, if you'd like to assign a static IP to a STA
+and have it connect to odin, you need to specify the STA's details in a file
+pointed to by this property. 
 
 * `net.floodlightcontroller.odin.master.OdinMaster.clientList [optional]`:
 
-For testing purposes, if you'd like to assign a static IP to a client
-and have it connect to odin, you need to specify the client's details in a file
-pointed to by this property. An example file looks as follows:
+So add to the floodlightdefault.properties file the next line:
+
+* `net.floodlightcontroller.odin.master.OdinMaster.clientList = ~/odin-master/odin_client_list
+
+
+An example odin_client_list file looks as follows:
 
 ```
   00:16:7f:7e:00:00 172.17.4.2 00:1b:1b:7e:00:00 odin-ssid-1
@@ -108,8 +136,18 @@ pointed to by this property. An example file looks as follows:
   00:16:7f:7e:00:02 172.17.4.4 00:1b:1b:7e:00:02 odin-ssid-3
 ```
 
-Each row represents a client's MAC address, its static IP address, its LVAP's
+Each row represents a STA MAC address (the real MAC), its static IP address
+(the IP of the wireless interface of the STA), its LVAP's
 BSSID, and the SSID that its LVAP will announce.
+
+If you want to change the port used for the communication between Odin controller
+and Odin agents, you can add this line to the floodlightdefault.properties file:
+
+* `net.floodlightcontroller.odin.master.OdinMaster.masterPort = 7777
+
+Another parameter you can set is idleLvapTimeout (see the source code of 
+OdinMaster.java).
+
 
 To run the master:
 
@@ -117,6 +155,11 @@ To run the master:
   $: java -jar floodlight.jar
 ```
 
+If you want to modify the configuration file location, you can run:
+
+```
+  $: java -jar floodlight.jar -cf configfile
+```
 
 Agents
 ------
@@ -126,16 +169,24 @@ Floodlight controller from above. Next, instantiate a monitor device:
 
 ```
   # If on OpenWRT Backfire
-  $: iw phy phy0 interface add mon0 set type monitor
+  $: iw phy phy0 interface add mon0 type monitor
   $: iw dev wlan0 set channel <required-channel>
   $: ifconfig mon0 up
 ```
 
 Then move the agent.click file generated through the click file generator to
-the AP, and run the following:
+the AP, and run the following (this first aligns the agent configuration file
+and then runs Click):
 
 ```
   $: click-align agent.click | click &
+```
+
+Another option is to algin the agent.click file in the machine where you are
+generating it, and then just run
+
+```
+  $: click agent.click &
 ```
 
 (Make sure agent.click specifies the same channel as being used by the monitor
