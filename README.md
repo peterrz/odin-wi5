@@ -26,7 +26,32 @@ is an application which runs on top of Floodlight Openflow controller.
 - Odin Agent / Access Point / AP: It runs Click Router with Odin elements,
 and communicates with the Odin Master in two ways: through a control socket,
 and through Openflow protocol.
+- STA / Client: The terminals that connect to the APs.
+- LVAP: A light virtual Access Point, which is in charge of each STA
+connected to an Odin AP. It is a 4-tuple including a) the STA MAC address
+(the real MAC); b) its static IP address (the IP of the wireless interface
+of the STA); c) a BSSID that the AP will use for communicating with this
+single STA; and d) the SSID that the AP will use for communicating with this
+single STA.
 
+This is a scheme of these elements:
+
+                                     |    <- - - - - - ->  |
+                                     |                     |
+    +-----------------------------------+             +-----+
+    |AP  +--------+      +----------+   |             |     |
+    |    | Click  |      | Openflow |   |             |     |
+    |    +--------+      +----------+   |             | STA |
+    +--------|--------------|-----------+             |     |
+                            |                         |     |
+    UDP 2819 |              |                         +-----+
+   LVAP info                | openflow. TCP 6633
+             |              |           TCP 6655
+                            |
+             |  +--------------+
+             + -| Odin master  |
+                | (Floodlight) |
+                +--------------+
 
 Building/Installation
 ---------------------
@@ -50,13 +75,13 @@ do the following:
   $: ant
 ```
 
-You should find floodlight.jar inside target/
+You should find `floodlight.jar` inside `target/`
 
 Before building the agent, apply the patch in odin-driver-patches to your
 Linux kernel ath9k driver code.
 
-To build the agent, copy the files in odin-agent/src/ to your Click source's
-/elements/local folder, then build Click.
+To build the agent, copy the files in `odin-agent/src/` to your Click source's
+`/elements/local` folder, then build Click.
 
 ```
   $: cd odin-agent
@@ -64,7 +89,7 @@ To build the agent, copy the files in odin-agent/src/ to your Click source's
 ```
 
 Now build Click using your cross compiler. Don't forget to pass the 
-"--enable-local" flag to Click's configure script.
+`--enable-local` flag to Click's configure script.
 
 Generate a Click file for the agent, using your preferred values for the
 options:
@@ -74,9 +99,9 @@ options:
    <HW_ADDR_OF_WIFI_INTERFACE> <ODIN_MASTER_IP> <ODIN_MASTER_PORT>
      > agent.click
 ```
-- HW_ADDR_OF_WIFI_INTERFACE: The Physical MAC of the AP's wireless card.
-- ODIN_MASTER_PORT: The default port used by the Odin Master is 2819, 
-so ODIN_MASTER_PORT should be this one by default.
+- `HW_ADDR_OF_WIFI_INTERFACE`: The Physical MAC of the AP's wireless card.
+- `ODIN_MASTER_PORT`: The default port used by the Odin Master is 2819, 
+so its value should be this one by default.
 
 Running Odin
 ------------
@@ -92,7 +117,7 @@ floodlight configuration file
 
 * `net.floodlightcontroller.odin.master.OdinMaster.poolFile`
 
-For example, add to the floodlightdefault.properties file the next line:
+For example, add to the `floodlightdefault.properties` file the next line:
 
 
 ```
