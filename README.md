@@ -88,13 +88,16 @@ The master is to be run on a central server that has IP reachability to all
 APs in the system.
 The master expects the following configuration parameters to be set in the
 floodlight configuration file 
-/odin-master/src/main/resources/floodlightdefault.properties:
+`~/odin-master/src/main/resources/floodlightdefault.properties`
 
 * `net.floodlightcontroller.odin.master.OdinMaster.poolFile`
 
 For example, add to the floodlightdefault.properties file the next line:
 
-* `net.floodlightcontroller.odin.master.OdinMaster.poolFile = ~/odin-master/poolfile
+
+```
+  net.floodlightcontroller.odin.master.OdinMaster.poolFile = ~/odin-master/poolfile
+```
 
 This should point to a pool file, which are essentially slices. An example
 poolfile is as follows:
@@ -113,7 +116,7 @@ poolfile is as follows:
   APPLICATIONS net.floodlightcontroller.odin.applications.SimpleLoadBalancer
 ```
 
-Each pool is defined by a name, a list of IP address of physical APs (NODES),
+Each pool is defined by a name, a list of IP addresses of physical APs (NODES),
 the list of SSIDs or NETWORKS to be announced, and a list of applications
 that operate on that pool.
 
@@ -121,11 +124,11 @@ For testing purposes, if you'd like to assign a static IP to a STA
 and have it connect to odin, you need to specify the STA's details in a file
 pointed to by this property. 
 
-* `net.floodlightcontroller.odin.master.OdinMaster.clientList [optional]`:
+* `net.floodlightcontroller.odin.master.OdinMaster.clientList [optional]`
 
-So add to the floodlightdefault.properties file the next line:
+So add to the `floodlightdefault.properties` file the next line:
 
-* `net.floodlightcontroller.odin.master.OdinMaster.clientList = ~/odin-master/odin_client_list
+* `net.floodlightcontroller.odin.master.OdinMaster.clientList = ~/odin-master/odin_client_list`
 
 
 An example odin_client_list file looks as follows:
@@ -141,12 +144,12 @@ Each row represents a STA MAC address (the real MAC), its static IP address
 BSSID, and the SSID that its LVAP will announce.
 
 If you want to change the port used for the communication between Odin controller
-and Odin agents, you can add this line to the floodlightdefault.properties file:
+and Odin agents, you can add this line to the `floodlightdefault.properties` file:
 
-* `net.floodlightcontroller.odin.master.OdinMaster.masterPort = 7777
+* `net.floodlightcontroller.odin.master.OdinMaster.masterPort = 7777`
 
-Another parameter you can set is idleLvapTimeout (see the source code of 
-OdinMaster.java).
+Another parameter you can set is `idleLvapTimeout` (see the source code of 
+`OdinMaster.java`).
 
 
 To run the master:
@@ -182,8 +185,8 @@ and then runs Click):
   $: click-align agent.click | click &
 ```
 
-Another option is to algin the agent.click file in the machine where you are
-generating it, and then just run
+Another option is to algin the `agent.click` file in the machine where you are
+generating it, and then just run:
 
 ```
   $: click agent.click &
