@@ -36,6 +36,7 @@ single STA.
 
 This is a scheme of these elements:
 
+```
                                      |    <- - - - - - ->  |
                                      |                     |
     +-----------------------------------+             +-----+
@@ -52,6 +53,8 @@ This is a scheme of these elements:
              + -| Odin master  |
                 | (Floodlight) |
                 +--------------+
+
+```
 
 Building/Installation
 ---------------------
