@@ -37,29 +37,42 @@ single STA.
 This is a scheme of these elements:
 
 ```
-                                     |    <- - - - - - ->  |
-                                     |                     |
-    +-----------------------------------+             +-----+
-    |AP  +--------+      +----------+   |             |     |
-    |    | Click  |      | Openflow |   |             |     |
-    |    +--------+      +----------+   |             | STA |
-    +--------|--------------|-----------+             |     |
-                            |                         |     |
-    UDP 2819 |              |                         +-----+
-   LVAP info                | openflow. TCP 6633
-             |              |           TCP 6655
-                            |
-             |  +--------------+
-             + -| Odin master  |
-                | (Floodlight) |
-                +--------------+
 
+      Access Point                                       Server
+    +-------------------------+                        +------------------+
+    | +---------------------+ |   odin skt UDP 2189    | +------+         |
+    | |+--------+       dp0 | |  <---------------->    | |odin  |         |
+    | || ap TAP |           | |                        | |master|         |
+    | |+--------+           | |   openflow TCP 6633    | +------+         |
+    | +--|---^--------------+ |   openflow TCP 6655    |    ^             |
+    |    |   |                |  <---------------->    |    |             |
+    |    v   |                |                        |    v             |
+    | +---------------------+ |                        | +--------------+ |
+    | | Click     +--------+| |                        | | Floodlight   | |
+    | |           |odin mod|| |                        | | controller   | |
+    | |           +--------+| |  click controlskt 6777 | +--------------+ |
+    | +---------------------+ |  click chatterskt 6778 |                  |
+    |    |   ^                |  <---------------->    +------------------+
+    |    v   |                |
+    |  +--------+             |       Ethernet
+    +--| mon0   |-------------+
+       +--------+      
+         |
+         |
+         |  <- -WiFi- >  |
+                         |
+                         |
+                    +-----+
+                    |     |
+                    | STA |
+                    |     |
+                    +-----+
 ```
 
 Building/Installation
 ---------------------
 
-Running Odin implies setting up the Odin master, and Odin agents.
+Running Odin implies setting up the Odin master and Odin agents.
 
 If you cloned Odin from the git repository, pull the individual submodules:
 
@@ -84,7 +97,7 @@ Before building the agent, apply the patch in odin-driver-patches to your
 Linux kernel ath9k driver code.
 
 To build the agent, copy the files in `odin-agent/src/` to your Click source's
-`/elements/local` folder, then build Click.
+`/elements/local` folder, then build Click:
 
 ```
   $: cd odin-agent
@@ -106,13 +119,14 @@ options:
 - `ODIN_MASTER_PORT`: The default port used by the Odin Master is 2819, 
 so its value should be this one by default.
 
+
 Running Odin
 ------------
 
 Master
 ------
 
-The master is to be run on a central server that has IP reachability to all
+The master is to be run on a server that has IP reachability to all the
 APs in the system.
 The master expects the following configuration parameters to be set in the
 floodlight configuration file 
@@ -120,15 +134,43 @@ floodlight configuration file
 
 * `net.floodlightcontroller.odin.master.OdinMaster.poolFile`
 
-For example, add to the `floodlightdefault.properties` file the next line:
-
+This is an example of the file content:
 
 ```
-  net.floodlightcontroller.odin.master.OdinMaster.poolFile = ~/odin-master/poolfile
+floodlight.modules = net.floodlightcontroller.storage.memory.MemoryStorageSource,\
+net.floodlightcontroller.staticflowentry.StaticFlowEntryPusher,\
+net.floodlightcontroller.forwarding.Forwarding,\
+net.floodlightcontroller.jython.JythonDebugInterface,\
+net.floodlightcontroller.counter.CounterStore,\
+net.floodlightcontroller.perfmon.PktInProcessingTime,\
+net.floodlightcontroller.ui.web.StaticWebRoutable,\
+net.floodlightcontroller.odin.master.OdinMaster
+net.floodlightcontroller.restserver.RestApiServer.port = 8080
+net.floodlightcontroller.core.FloodlightProvider.openflowport = 6633
+net.floodlightcontroller.jython.JythonDebugInterface.port = 6655
+net.floodlightcontroller.odin.master.OdinMaster.masterPort = 2819
+net.floodlightcontroller.odin.master.OdinMaster.poolFile = poolfile
+net.floodlightcontroller.odin.master.OdinMaster.clientList = odin_client_list
+```
+The meaning of some of the lines is:
+
+Charge the odin Java module:
+```
+net.floodlightcontroller.odin.master.OdinMaster
 ```
 
-This should point to a pool file, which are essentially slices. An example
-poolfile is as follows:
+
+Tell Odin where the `poolfile` is:
+
+* `net.floodlightcontroller.odin.master.OdinMaster.poolFile = poolfile
+
+
+This should point to a pool file (in `~/odin-master/`), which are essentially slices.
+
+By default the `poolfile` should be in the `~/odin-master/` directory. You can also 
+place it in other way, but then you should provide the path.
+
+An example of the `poolfile` content is as follows:
 
 ```
   # Pool-1
@@ -156,7 +198,7 @@ pointed to by this property.
 
 So add to the `floodlightdefault.properties` file the next line:
 
-* `net.floodlightcontroller.odin.master.OdinMaster.clientList = ~/odin-master/odin_client_list`
+* `net.floodlightcontroller.odin.master.OdinMaster.clientList = odin_client_list`
 
 
 An example odin_client_list file looks as follows:
@@ -167,9 +209,13 @@ An example odin_client_list file looks as follows:
   00:16:7f:7e:00:02 172.17.4.4 00:1b:1b:7e:00:02 odin-ssid-3
 ```
 
-Each row represents a STA MAC address (the real MAC), its static IP address
-(the IP of the wireless interface of the STA), its LVAP's
-BSSID, and the SSID that its LVAP will announce.
+Each row represents:
+- a STA MAC address (the real MAC)
+- its static IP address (the IP of the wireless interface of the STA)
+- its LVAP's BSSID
+- the SSID that its LVAP will announce.
+
+If you add white lines in the end of this file, you will get an error from Odin.
 
 If you want to change the port used for the communication between Odin controller
 and Odin agents, you can add this line to the `floodlightdefault.properties` file:
@@ -191,21 +237,28 @@ If you want to modify the configuration file location, you can run:
 ```
   $: java -jar floodlight.jar -cf configfile
 ```
+An example:
+```
+  ~/odin-master# java -jar ./target/floodlight.jar -cf     ./src/main/resources/floodlightdefault.properties
+```
 
-Agents
-------
+Agents: Prepare the wireless interface
+--------------------------------------
 
-To run the agents, first instantiate Open vSwitch and have it connect to the
-Floodlight controller from above. Next, instantiate a monitor device:
+Instantiate a monitor device:
 
 ```
-  # If on OpenWRT Backfire
+  # If on OpenWRT
+  $: ifconfig wlan0 down
   $: iw phy phy0 interface add mon0 type monitor
   $: iw dev wlan0 set channel <required-channel>
   $: ifconfig mon0 up
 ```
 
-Then move the agent.click file generated through the click file generator to
+Agents: Start Click Modular Router
+----------------------------------
+
+Move the agent.click file generated through the click file generator to
 the AP, and run the following (this first aligns the agent configuration file
 and then runs Click):
 
@@ -220,11 +273,43 @@ generating it, and then just run:
   $: click agent.click &
 ```
 
-(Make sure agent.click specifies the same channel as being used by the monitor
+(Make sure `agent.click` specifies the same channel as being used by the monitor
 device.)
 
-Click should have instantiated a tap device named 'ap', which should be added
-to Open vSwitch' datapath:
+Click should have instantiated a tap device named `ap`.
+
+
+Agents: Run OpenvSwitch
+-----------------------
+
+You have to instantiate Open vSwitch and have it connected to the
+Floodlight controller from above. For that, do the next steps:
+
+Start the Openvswitch service:
+
+```
+  $: /etc/init.d/openvswitch start
+```
+
+Add a bridge named `br0`:
+ 
+```
+  $: ovs-vsctl add-br br0
+```
+
+Connect the bridge to an Openflow controller:
+
+```
+  $: ovs-vsctl set-controller dp0 tcp:155.210.157.237
+```
+
+Add a datapath named `dp0` (similar to a bridge):
+
+```
+  $: ovs-dpctl add-dp dp0
+```
+
+The `ap` device should be added to OpenvSwitch datapath:
 
 ```
   $: ovs-dpctl add-if dp0 ap
