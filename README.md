@@ -17,17 +17,18 @@ For the agent/AP:
 - An ath9k driver based WiFi card. You should first patch it with the
 patch provided in https://github.com/lalithsuresh/odin-driver-patches
 
+- You may find some help and utilities here: https://github.com/fgg89
 
 Terminology
 -----------
 
-- Odin Master / Controller: the entity who controls the whole system. It
+- **Odin Master** / **Controller**: the entity who controls the whole system. It
 is an application which runs on top of Floodlight Openflow controller.
-- Odin Agent / Access Point / AP: It runs Click Router with Odin elements,
+- **Odin Agent** / **Access Point** / **AP**: It runs Click Router with Odin elements,
 and communicates with the Odin Master in two ways: through a control socket,
 and through Openflow protocol.
-- STA / Client: The terminals that connect to the APs.
-- LVAP: A light virtual Access Point, which is in charge of each STA
+- **STA** / **Client**: The terminals that connect to the APs.
+- **LVAP**: A light virtual Access Point, which is in charge of each STA
 connected to an Odin AP. It is a 4-tuple including a) the STA MAC address
 (the real MAC); b) its static IP address (the IP of the wireless interface
 of the STA); c) a BSSID that the AP will use for communicating with this
@@ -93,7 +94,8 @@ do the following:
 
 You should find `floodlight.jar` inside `target/`
 
-Before building the agent, apply the patch in odin-driver-patches to your
+Before building the agent, apply the patch in `odin-driver-patches` 
+(https://github.com/lalithsuresh/odin-driver-patches) to your
 Linux kernel ath9k driver code.
 
 To build the agent, copy the files in `odin-agent/src/` to your Click source's
@@ -134,7 +136,7 @@ floodlight configuration file
 
 * `net.floodlightcontroller.odin.master.OdinMaster.poolFile`
 
-This is an example of the file content:
+This is an example of the content of `poolfile`:
 
 ```
 floodlight.modules = net.floodlightcontroller.storage.memory.MemoryStorageSource,\
@@ -155,14 +157,13 @@ net.floodlightcontroller.odin.master.OdinMaster.clientList = odin_client_list
 The meaning of some of the lines is:
 
 Charge the odin Java module:
-```
-net.floodlightcontroller.odin.master.OdinMaster
-```
+
+* `net.floodlightcontroller.odin.master.OdinMaster`
 
 
-Tell Odin where the `poolfile` is:
+Tell Odin where the file `poolfile` is:
 
-* `net.floodlightcontroller.odin.master.OdinMaster.poolFile = poolfile
+* `net.floodlightcontroller.odin.master.OdinMaster.poolFile = poolfile`
 
 
 This should point to a pool file (in `~/odin-master/`), which are essentially slices.
@@ -220,7 +221,7 @@ If you add white lines in the end of this file, you will get an error from Odin.
 If you want to change the port used for the communication between Odin controller
 and Odin agents, you can add this line to the `floodlightdefault.properties` file:
 
-* `net.floodlightcontroller.odin.master.OdinMaster.masterPort = 7777`
+* `net.floodlightcontroller.odin.master.OdinMaster.masterPort = 2819`
 
 Another parameter you can set is `idleLvapTimeout` (see the source code of 
 `OdinMaster.java`).
@@ -239,7 +240,7 @@ If you want to modify the configuration file location, you can run:
 ```
 An example:
 ```
-  ~/odin-master# java -jar ./target/floodlight.jar -cf     ./src/main/resources/floodlightdefault.properties
+  ~/odin-master# java -jar ./target/floodlight.jar -cf ./src/main/resources/floodlightdefault.properties
 ```
 
 Agents: Prepare the wireless interface
@@ -303,13 +304,13 @@ Connect the bridge to an Openflow controller:
   $: ovs-vsctl set-controller dp0 tcp:155.210.157.237
 ```
 
-Add a datapath named `dp0` (similar to a bridge):
+Add a datapath named `dp0`:
 
 ```
   $: ovs-dpctl add-dp dp0
 ```
 
-The `ap` device should be added to OpenvSwitch datapath:
+Add the `ap` device to `dp0` OpenvSwitch datapath:
 
 ```
   $: ovs-dpctl add-if dp0 ap
