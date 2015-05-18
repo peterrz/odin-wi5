@@ -116,10 +116,18 @@ options:
   $: python agent-click-file-gen.py <AP_CHANNEL> <QUEUE_SIZE> \
    <HW_ADDR_OF_WIFI_INTERFACE> <ODIN_MASTER_IP> <ODIN_MASTER_PORT>
      > agent.click
+  $: python agent-click-file-gen.py <AP_CHANNEL> <QUEUE_SIZE> \
+   <HW_ADDR> <ODIN_MASTER_IP> <ODIN_MASTER_PORT> <DEFUGFS_PATH> \
+     > agent.click
 ```
-- `HW_ADDR_OF_WIFI_INTERFACE`: The Physical MAC of the AP's wireless card.
-- `ODIN_MASTER_PORT`: The default port used by the Odin Master is 2819, 
-so its value should be this one by default.
+* `AP_CHANNEL`: it must be the same where mon0 of the AP is placed
+* `QUEUE_SIZE`: you can use the size 50
+* `HW_ADDR`: the MAC of the wireless interface mon0 of the AP. e.g. 74-F0-6E-20-D4-74
+* `ODIN_MASTER_IP` is the IP of the openflow controller where Odin master is running
+* `ODIN_MASTER_PORT` should be 2819 by default
+* `DEBUGFS_PATH` is the path of the bssid_extra file created by the ath9k patch
+         it can be /sys/kernel/debug/ieee80211/phy0/ath9k/'
+
 
 
 Running Odin
@@ -301,7 +309,7 @@ Add a bridge named `br0`:
 Connect the bridge to an Openflow controller:
 
 ```
-  $: ovs-vsctl set-controller dp0 tcp:155.210.157.237
+  $: ovs-vsctl set-controller br0 tcp:155.210.157.237
 ```
 
 Add a datapath named `dp0`:
