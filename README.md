@@ -5,6 +5,9 @@ Odin is an SDN framework programmable enterprise WLANs. It provides
 a platform for developing typical enterprise WLAN services such as
 mobility managers, and load balancers as "network applications".
 
+It was developed by Lalith Shuresh (https://github.com/lalithsuresh).
+This is a fork with some improvements.
+
 
 Requirements
 ------------
@@ -164,10 +167,14 @@ net.floodlightcontroller.odin.master.OdinMaster.clientList = odin_client_list
 ```
 The meaning of some of the lines is:
 
+** Odin Java module **
+
 Charge the odin Java module:
 
 * `net.floodlightcontroller.odin.master.OdinMaster`
 
+
+** Poolfile **
 
 Tell Odin where the file `poolfile` is:
 
@@ -199,13 +206,19 @@ Each pool is defined by a name, a list of IP addresses of physical APs (NODES),
 the list of SSIDs or NETWORKS to be announced, and a list of applications
 that operate on that pool.
 
-For testing purposes, if you'd like to assign a static IP to a STA
-and have it connect to odin, you need to specify the STA's details in a file
-pointed to by this property. 
 
-* `net.floodlightcontroller.odin.master.OdinMaster.clientList [optional]`
+** Odin client list (required when DHCP is not used) **
 
-So add to the `floodlightdefault.properties` file the next line:
+If DHCP is not used, then the Odin controller is not able to hear the DHCP ACK
+packets, so it is not aware of the IPs of the clients.
+
+Therefore, if you are not using DHCP, then:
+
+- assign a static IP to each STA. These IPs must be in the same subnet as the 
+wireless interface of the AP.
+
+- you need to specify the STAs' details in a file pointed to by this property 
+(ClientList). So add to the `floodlightdefault.properties` file the next line:
 
 * `net.floodlightcontroller.odin.master.OdinMaster.clientList = odin_client_list`
 
@@ -218,13 +231,15 @@ An example odin_client_list file looks as follows:
   00:16:7f:7e:00:02 172.17.4.4 00:1b:1b:7e:00:02 odin-ssid-3
 ```
 
-Each row represents:
-- a STA MAC address (the real MAC)
-- its static IP address (the IP of the wireless interface of the STA)
-- its LVAP's BSSID
-- the SSID that its LVAP will announce.
+Each row represents a STA:
+- MAC address (the MAC of the physical interface)
+- Static IP address (the IP of the wireless interface of the STA)
+- its LVAP's BSSID. You can invent it
+- the SSID that its LVAP will announce
 
-If you add white lines in the end of this file, you will get an error from Odin.
+(If you add white lines in the end of this file, you will get an error from Odin).
+
+** Port for Odin messages **
 
 If you want to change the port used for the communication between Odin controller
 and Odin agents, you can add this line to the `floodlightdefault.properties` file:
@@ -241,7 +256,7 @@ To run the master:
   $: java -jar floodlight.jar
 ```
 
-If you want to modify the configuration file location, you can run:
+If you want to specify the location of the configuration file, run:
 
 ```
   $: java -jar floodlight.jar -cf configfile
@@ -260,8 +275,9 @@ Instantiate a monitor device:
   # If on OpenWRT
   $: ifconfig wlan0 down
   $: iw phy phy0 interface add mon0 type monitor
-  $: iw dev wlan0 set channel <required-channel>
+  $: iw dev wlan0 set channel <required-channel>  # the same channel specified in agent.click
   $: ifconfig mon0 up
+  $: ifconfig wlan0 up
 ```
 
 Agents: Start Click Modular Router
@@ -332,3 +348,9 @@ References
 
 The system is described in the following Masters' thesis:
 http://lalithsuresh.files.wordpress.com/2011/04/lalith-thesis.pdf
+
+You may find some information in this article:
+https://www.usenix.org/system/files/conference/atc14/atc14-paper-schulz_zander.pdf
+
+And this is a presentation:
+https://www.usenix.org/conference/atc14/technical-sessions/presentation/schulz-zandery
