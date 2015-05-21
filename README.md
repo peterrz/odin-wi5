@@ -142,9 +142,7 @@ The master expects the following configuration parameters to be set in the
 floodlight configuration file 
 `~/odin-master/src/main/resources/floodlightdefault.properties`
 
-* `net.floodlightcontroller.odin.master.OdinMaster.poolFile`
-
-This is an example of the content of `poolfile`:
+This is an example of the content of `floodlightdefault.properties`:
 
 ```
 floodlight.modules = net.floodlightcontroller.storage.memory.MemoryStorageSource,\
