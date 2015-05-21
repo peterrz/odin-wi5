@@ -117,19 +117,16 @@ options:
 
 ```
   $: python agent-click-file-gen.py <AP_CHANNEL> <QUEUE_SIZE> \
-   <HW_ADDR_OF_WIFI_INTERFACE> <ODIN_MASTER_IP> <ODIN_MASTER_PORT>
-     > agent.click
-  $: python agent-click-file-gen.py <AP_CHANNEL> <QUEUE_SIZE> \
-   <HW_ADDR> <ODIN_MASTER_IP> <ODIN_MASTER_PORT> <DEFUGFS_PATH> \
+   <HW_ADDR> <ODIN_MASTER_IP> <ODIN_MASTER_PORT> <DEFUGFS_FILE> \
      > agent.click
 ```
 * `AP_CHANNEL`: it must be the same where mon0 of the AP is placed
 * `QUEUE_SIZE`: you can use the size 50
-* `HW_ADDR`: the MAC of the wireless interface mon0 of the AP. e.g. 74-F0-6E-20-D4-74
+* `HW_ADDR`: the MAC of the wireless interface mon0 of the AP. e.g. E8-DE-27-F7-02-16
 * `ODIN_MASTER_IP` is the IP of the openflow controller where Odin master is running
 * `ODIN_MASTER_PORT` should be 2819 by default
-* `DEBUGFS_PATH` is the path of the bssid_extra file created by the ath9k patch
-         it can be /sys/kernel/debug/ieee80211/phy0/ath9k/'
+* `DEBUGFS_FILE` is the path of the bssid_extra file created by the ath9k patch
+         it can be e.g. /sys/kernel/debug/ieee80211/phy0/ath9k/bssid_extra'
 
 
 
@@ -167,14 +164,14 @@ net.floodlightcontroller.odin.master.OdinMaster.clientList = odin_client_list
 ```
 The meaning of some of the lines is:
 
-** Odin Java module **
+**Odin Java module**
 
 Charge the odin Java module:
 
 * `net.floodlightcontroller.odin.master.OdinMaster`
 
 
-** Poolfile **
+**Poolfile**
 
 Tell Odin where the file `poolfile` is:
 
@@ -207,7 +204,7 @@ the list of SSIDs or NETWORKS to be announced, and a list of applications
 that operate on that pool.
 
 
-** Odin client list (required when DHCP is not used) **
+**Odin client list (required when DHCP is not used)**
 
 If DHCP is not used, then the Odin controller is not able to hear the DHCP ACK
 packets, so it is not aware of the IPs of the clients.
@@ -239,7 +236,7 @@ Each row represents a STA:
 
 (If you add white lines in the end of this file, you will get an error from Odin).
 
-** Port for Odin messages **
+**Port for Odin messages**
 
 If you want to change the port used for the communication between Odin controller
 and Odin agents, you can add this line to the `floodlightdefault.properties` file:
