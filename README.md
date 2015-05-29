@@ -311,17 +311,54 @@ Start the Openvswitch service:
   $: /etc/init.d/openvswitch start
 ```
 
-Add a bridge named `br0`:
+Using Openvswitch, add a bridge named `br0` (remove it if it exists):
  
 ```
+  $: ovs-vsctl del-br br0
   $: ovs-vsctl add-br br0
+  $: ovs-vsctl set bridge br0 protocols=OpenFlow10
 ```
 
 Connect the bridge to an Openflow controller:
 
 ```
-  $: ovs-vsctl set-controller br0 tcp:155.210.157.237
+  $: ovs-vsctl set-controller br0 tcp:192.168.1.2
 ```
+
+Add an interface to the bridge `br0`:
+
+```
+  $: ovs-vsctl add-port br0 eth1.1
+
+```
+
+At this point, you should run `./click a_agen7.cli &` if you have not done it yet.
+
+As soon as Click starts running, an `ap` interface will appear. 
+
+Switch on the `ap` interface:
+```
+  $: ifconfig ap up
+```
+
+Add the interface to the bridge
+```
+  $: ovs-vsctl add-port br0 ap
+```
+
+You can use `ovs-vsctl list-ports br0` to make sure `ap` and the other interface 
+are included in `br0`.
+
+At this point, you should be able to connect from a STA and ping. You should see
+an ESSID created by Odin in the STA. You can connect in Linux using:
+
+```
+  $: iwconfig wlan0 essid odin-created-ssid
+```
+
+--------------------------------------------------------------
+
+These other commands are provided by Lalith Shuresh, but I have not explored them yet:
 
 Add a datapath named `dp0`:
 
