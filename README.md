@@ -325,10 +325,15 @@ Connect the bridge to an Openflow controller:
   $: ovs-vsctl set-controller br0 tcp:192.168.1.2
 ```
 
-Add an interface to the bridge `br0`:
+Add the interfaces of the internal network to the bridge `br0`:
 
 ```
   $: ovs-vsctl add-port br0 eth1.1
+  $: ovs-vsctl add-port br0 eth1.2
+  $: ovs-vsctl add-port br0 eth1.3
+  $: ovs-vsctl add-port br0 eth1.4
+  $: ovs-vsctl add-port br0 wlan0
+
 
 ```
 
