@@ -42,7 +42,7 @@ This is a scheme of these elements:
 
 ```
 
-      Access Point                                       Server
+      Access Point                                       Controller
     +-------------------------+                        +------------------+
     | +---------------------+ |   odin skt UDP 2189    | +------+         |
     | |+--------+       dp0 | |  <---------------->    | |odin  |         |
@@ -133,8 +133,8 @@ options:
 Running Odin
 ------------
 
-Master
-------
+Controller
+----------
 
 The master is to be run on a server that has IP reachability to all the
 APs in the system.
@@ -265,7 +265,7 @@ An example:
   ~/odin-master# java -jar ./target/floodlight.jar -cf ./src/main/resources/floodlightdefault.properties
 ```
 
-Agents: Prepare the wireless interface
+Agent: Prepare the wireless interface
 --------------------------------------
 
 Instantiate a monitor device:
@@ -299,7 +299,7 @@ Start the Openvswitch service:
 
 Using Openvswitch, add a bridge named `br0`.
 
-First remove it if it exists:
+First remove it (if it exists):
  
 ```
   $: ovs-vsctl del-br br0
