@@ -187,13 +187,13 @@ An example of the `poolfile` content is as follows:
   # Pool-1
   NAME pool-1
   NODES 172.17.1.13 172.17.1.21 172.17.1.29
-  NETWORKS odin
+  NETWORKS odin-mobility-network
   APPLICATIONS net.floodlightcontroller.odin.applications.OdinMobilityManager
 
   # Pool-2
   NAME pool-2
   NODES 172.17.1.29 172.17.1.37 172.17.1.45
-  NETWORKS guest-network
+  NETWORKS odin-guest-network
   APPLICATIONS net.floodlightcontroller.odin.applications.SimpleLoadBalancer
 ```
 
@@ -202,7 +202,7 @@ the list of SSIDs or NETWORKS to be announced, and a list of applications
 that operate on that pool.
 
 
-**Odin client list (required when DHCP is not used)**
+**Odin client list (only required when DHCP is not used)**
 
 If DHCP is not used, then the Odin controller is not able to hear the DHCP ACK
 packets, so it is not aware of the IPs of the clients.
@@ -233,6 +233,10 @@ Each row represents a STA:
 - the SSID that its LVAP will announce
 
 (If you add white lines in the end of this file, you will get an error from Odin).
+
+Please note: If you add the MAC of a device in this file, then it will not obtain
+an IP address with DHCP, so you will have to set it manually.
+
 
 **Port for Odin messages**
 
@@ -272,10 +276,67 @@ Instantiate a monitor device:
   $: iw phy phy0 interface add mon0 type monitor
   $: iw dev wlan0 set channel <required-channel>  # the same channel specified in agent.click
   $: ifconfig mon0 up
+```
+
+If you want the AP to create its default ESSID, in addition to Odin's one, run this command (not recommended):
+
+```
   $: ifconfig wlan0 up
 ```
 
-Agents: Start Click Modular Router
+
+Agent: Run OpenvSwitch
+-----------------------
+
+You have to instantiate Open vSwitch and have it connected to the
+Floodlight controller from above. For that, do the next steps:
+
+Start the Openvswitch service:
+
+```
+  $: /etc/init.d/openvswitch start
+```
+
+Using Openvswitch, add a bridge named `br0`.
+
+First remove it if it exists:
+ 
+```
+  $: ovs-vsctl del-br br0
+```
+
+Add the switch:
+
+```
+  $: ovs-vsctl add-br br0
+```
+
+Connect the bridge to an Openflow controller:
+
+```
+  $: ovs-vsctl set-controller br0 tcp:192.168.1.2
+```
+
+Add the interfaces of the internal network to the bridge `br0`. You 
+have to add (at least) the interfaces that connect the AP with the 
+controller, the DHCP server and the rest of the network. There is no problem
+if you add all the interfaces of the AP:
+
+```
+  $: ovs-vsctl add-port br0 eth1.1
+  $: ovs-vsctl add-port br0 eth1.2
+  $: ovs-vsctl add-port br0 eth1.3
+  $: ovs-vsctl add-port br0 eth1.4
+
+```
+
+If you have previously ran Odin in this AP, remove the interface `ap`:
+
+```
+  $: ovs-vsctl del-port br0 ap
+```
+
+Agent: Start Click Modular Router
 ----------------------------------
 
 Move the agent.click file generated through the click file generator to
@@ -296,49 +357,6 @@ generating it, and then just run:
 (Make sure `agent.click` specifies the same channel as being used by the monitor
 device.)
 
-Click should have instantiated a tap device named `ap`.
-
-
-Agents: Run OpenvSwitch
------------------------
-
-You have to instantiate Open vSwitch and have it connected to the
-Floodlight controller from above. For that, do the next steps:
-
-Start the Openvswitch service:
-
-```
-  $: /etc/init.d/openvswitch start
-```
-
-Using Openvswitch, add a bridge named `br0` (remove it if it exists):
- 
-```
-  $: ovs-vsctl del-br br0
-  $: ovs-vsctl add-br br0
-  $: ovs-vsctl set bridge br0 protocols=OpenFlow10
-```
-
-Connect the bridge to an Openflow controller:
-
-```
-  $: ovs-vsctl set-controller br0 tcp:192.168.1.2
-```
-
-Add the interfaces of the internal network to the bridge `br0`:
-
-```
-  $: ovs-vsctl add-port br0 eth1.1
-  $: ovs-vsctl add-port br0 eth1.2
-  $: ovs-vsctl add-port br0 eth1.3
-  $: ovs-vsctl add-port br0 eth1.4
-  $: ovs-vsctl add-port br0 wlan0
-
-
-```
-
-At this point, you should run `./click a_agen7.cli &` if you have not done it yet.
-
 As soon as Click starts running, an `ap` interface will appear. 
 
 Switch on the `ap` interface:
@@ -351,33 +369,20 @@ Add the interface to the bridge
   $: ovs-vsctl add-port br0 ap
 ```
 
-You can use `ovs-vsctl list-ports br0` to make sure `ap` and the other interface 
+You can use `ovs-vsctl list-ports br0` to make sure `ap` and the other interfaces 
 are included in `br0`.
+
+
+Station: Connect to Odin
+-------------------------
 
 At this point, you should be able to connect from a STA and ping. You should see
 an ESSID created by Odin in the STA. You can connect in Linux using:
 
 ```
-  $: iwconfig wlan0 essid odin-created-ssid
+  $: iwconfig wlan0 essid odin-ssid-1
 ```
 
---------------------------------------------------------------
-
-These other commands are provided by Lalith Shuresh, but I have not explored them yet:
-
-Add a datapath named `dp0`:
-
-```
-  $: ovs-dpctl add-dp dp0
-```
-
-Add the `ap` device to `dp0` OpenvSwitch datapath:
-
-```
-  $: ovs-dpctl add-if dp0 ap
-```
-
-Wait a few seconds for the agent to successfully connect to the master.
 
 
 References
