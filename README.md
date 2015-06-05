@@ -284,6 +284,18 @@ If you want the AP to create its default ESSID, in addition to Odin's one, run t
   $: ifconfig wlan0 up
 ```
 
+Agent: Automated scripts
+------------------------
+
+If you want, you can use some scripts in order to automate the next steps (run OpenvSwitch and
+start Click):
+
+https://github.com/Wi5/odin-agent/tree/master/scripts_start_ap_odin
+
+Run first `script_start_ovs.sh` and then `script_start_click.sh`.
+
+The scripts have been inspired in https://gist.github.com/marciolm/9f0ab13b877372d08e8f
+
 
 Agent: Run OpenvSwitch
 -----------------------
@@ -327,7 +339,6 @@ if you add all the interfaces of the AP:
   $: ovs-vsctl add-port br0 eth1.2
   $: ovs-vsctl add-port br0 eth1.3
   $: ovs-vsctl add-port br0 eth1.4
-
 ```
 
 If you have previously ran Odin in this AP, remove the interface `ap`:
