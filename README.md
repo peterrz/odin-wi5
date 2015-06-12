@@ -44,8 +44,8 @@ This is a scheme of these elements:
 
       Access Point                                       Controller
     +-------------------------+                        +------------------+
-    | +---------------------+ |   odin skt UDP 2189    | +------+         |
-    | |+--------+       dp0 | |  <---------------->    | |odin  |         |
+    | +---------------------+ |   odin UDP skt 2189    | +------+         |
+    | |+--------+       dp0 | |  ----------------->    | |odin  |         |
     | || ap TAP |           | |                        | |master|         |
     | |+--------+           | |   openflow TCP 6633    | +------+         |
     | +--|---^--------------+ |   openflow TCP 6655    |    ^             |
@@ -61,16 +61,17 @@ This is a scheme of these elements:
     |  +--------+             |       Ethernet
     +--| mon0   |-------------+
        +--------+      
-         |
-         |
-         |  <- -WiFi- >  |
-                         |
-                         |
-                    +-----+
-                    |     |
-                    | STA |
-                    |     |
-                    +-----+
+         |                         Protocol between Odin master and agents:
+         |                           - Click controlsocket port 6777:
+         |  <- -WiFi- >  |              - ADD_LVAP
+                         |              - REMOVE_LVAP
+                         |              - QUERY_STATS
+                    +-----+             - ADD_SUBSCRIPTION
+                    |     |             
+                    | STA |          - Odin UDP socket port 2189:
+                    |     |             - RECVD_PROBE_REQUEST
+                    +-----+             - PING
+                                        - PUBLISH
 ```
 
 Building/Installation
@@ -186,13 +187,13 @@ An example of the `poolfile` content is as follows:
 ```
   # Pool-1
   NAME pool-1
-  NODES 172.17.1.13 172.17.1.21 172.17.1.29
+  NODES 192.168.1.5 192.168.1.6
   NETWORKS odin-mobility-network
   APPLICATIONS net.floodlightcontroller.odin.applications.OdinMobilityManager
 
   # Pool-2
   NAME pool-2
-  NODES 172.17.1.29 172.17.1.37 172.17.1.45
+  NODES 192.168.1.7 192.168.1.8 192.168.1.9
   NETWORKS odin-guest-network
   APPLICATIONS net.floodlightcontroller.odin.applications.SimpleLoadBalancer
 ```
@@ -221,9 +222,10 @@ wireless interface of the AP.
 An example odin_client_list file looks as follows:
 
 ```
-  00:16:7f:7e:00:00 172.17.4.2 00:1b:1b:7e:00:00 odin-ssid-1
-  00:16:7f:7e:00:01 172.17.4.3 00:1b:1b:7e:00:01 odin-ssid-2
-  00:16:7f:7e:00:02 172.17.4.4 00:1b:1b:7e:00:02 odin-ssid-3
+74:F0:6D:20:D4:74 192.168.1.11 00:1B:B3:67:6B:11 odin-unizar-1
+20:68:3F:60:2A:F2 192.168.1.12 00:1B:B3:67:6B:12 odin-unizar-2
+80:18:7C:EB:F0:2E 192.168.1.13 00:1B:B3:67:6B:13 odin-unizar-3
+
 ```
 
 Each row represents a STA:
