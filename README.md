@@ -45,7 +45,7 @@ This is a scheme of these elements:
       Access Point                                       Controller
     +-------------------------+                        +------------------+
     | +---------------------+ |   odin UDP skt 2189    | +------+         |
-    | |+--------+       dp0 | |  ----------------->    | |odin  |         |
+    | |+--------+           | |  ----------------->    | |odin  |         |
     | || ap TAP |           | |                        | |master|         |
     | |+--------+           | |   openflow TCP 6633    | +------+         |
     | +--|---^--------------+ |   openflow TCP 6655    |    ^             |
@@ -286,8 +286,8 @@ If you want the AP to create its default ESSID, in addition to Odin's one, run t
   $: ifconfig wlan0 up
 ```
 
-Agent: Automated scripts
-------------------------
+Agent: Automated scripts (Option 1)
+-----------------------------------
 
 If you want, you can use some scripts in order to automate the next steps (run OpenvSwitch and
 start Click):
@@ -299,8 +299,8 @@ Run first `script_start_ovs.sh` and then `script_start_click.sh`.
 The scripts have been inspired in https://gist.github.com/marciolm/9f0ab13b877372d08e8f
 
 
-Agent: Run OpenvSwitch
------------------------
+Agent: Run OpenvSwitch manually (Option 2)
+------------------------------------------
 
 You have to instantiate Open vSwitch and have it connected to the
 Floodlight controller from above. For that, do the next steps:
@@ -349,8 +349,8 @@ If you have previously ran Odin in this AP, remove the interface `ap`:
   $: ovs-vsctl del-port br0 ap
 ```
 
-Agent: Start Click Modular Router
-----------------------------------
+Agent: Start Click Modular Router manually (Option 2)
+-----------------------------------------------------
 
 Move the agent.click file generated through the click file generator to
 the AP, and run the following (this first aligns the agent configuration file
