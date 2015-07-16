@@ -148,7 +148,7 @@ This is an example of the content of `floodlightdefault.properties`:
 ```
 floodlight.modules = net.floodlightcontroller.storage.memory.MemoryStorageSource,\
 net.floodlightcontroller.staticflowentry.StaticFlowEntryPusher,\
-net.floodlightcontroller.forwarding.Forwarding,\
+net.floodlightcontroller.learningswitch.LearningSwitch,\
 net.floodlightcontroller.jython.JythonDebugInterface,\
 net.floodlightcontroller.counter.CounterStore,\
 net.floodlightcontroller.perfmon.PktInProcessingTime,\
