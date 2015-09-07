@@ -144,7 +144,7 @@ floodlight configuration file
 `~/odin-master/src/main/resources/floodlightdefault.properties`
 
 This is an example of the content of `floodlightdefault.properties`:
-
+(you can find it here: https://github.com/Wi5/odin-master/blob/odin/src/main/resources/floodlightdefault.properties)
 ```
 floodlight.modules = net.floodlightcontroller.storage.memory.MemoryStorageSource,\
 net.floodlightcontroller.staticflowentry.StaticFlowEntryPusher,\
@@ -183,7 +183,7 @@ By default the `poolfile` should be in the `~/odin-master/` directory. You can a
 place it in other way, but then you should provide the path.
 
 An example of the `poolfile` content is as follows:
-
+(you can find it here: https://github.com/Wi5/odin-master/blob/odin/poolfile)
 ```
   # Pool-1
   NAME pool-1
@@ -220,7 +220,7 @@ wireless interface of the AP.
 
 
 An example odin_client_list file looks as follows:
-
+(you can find it here: https://github.com/Wi5/odin-master/blob/odin/odin_client_list)
 ```
 74:F0:6D:20:D4:74 192.168.1.11 00:1B:B3:67:6B:11 odin-unizar-1
 20:68:3F:60:2A:F2 192.168.1.12 00:1B:B3:67:6B:12 odin-unizar-2
