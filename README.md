@@ -43,35 +43,35 @@ This is a scheme of these elements:
 ```
 
       Access Point                                       Controller
-    +-------------------------+                        +------------------+
-    | +---------------------+ |   odin UDP skt 2189    | +------+         |
-    | |+--------+           | |  ----------------->    | |odin  |         |
-    | || ap TAP |           | |                        | |master|         |
-    | |+--------+           | |   openflow TCP 6633    | +------+         |
-    | +--|---^--------------+ |   openflow TCP 6655    |    ^             |
-    |    |   |                |  <---------------->    |    |             |
-    |    v   |                |                        |    v             |
-    | +---------------------+ |                        | +--------------+ |
-    | | Click     +--------+| |                        | | Floodlight   | |
-    | |           |odin mod|| |                        | | controller   | |
-    | |           +--------+| |  click controlskt 6777 | +--------------+ |
-    | +---------------------+ |  click chatterskt 6778 |                  |
-    |    |   ^                |  <---------------->    +------------------+
-    |    v   |                |
-    |  +--------+             |       Ethernet
-    +--| mon0   |-------------+
-       +--------+      
-         |                         Protocol between Odin master and agents:
-         |                           - Click controlsocket port 6777:
-         |  <- -WiFi- >  |              - ADD_LVAP
-                         |              - REMOVE_LVAP
-                         |              - QUERY_STATS
-                    +-----+             - ADD_SUBSCRIPTION
-                    |     |             
-                    | STA |          - Odin UDP socket port 2189:
-                    |     |             - RECVD_PROBE_REQUEST
-                    +-----+             - PING
-                                        - PUBLISH
++-------------------------------+                        +------------------+
+| +---------------------------+ |   odin UDP skt 2189    | +------+         |
+| |+--------+ +------+ +-----+| |  ----------------->    | |odin  |         |
+| || ap TAP | | br0  | |eth1 || |   openflow TCP 6633    | |master|         |
+| |+--------+ +------+ +-----+| |   openflow TCP 6655    | +------+         |
+| |  |   ^    Openvswitch br0 |<--------------------->   |    ^             |
+| +--|---|--------------------+ |                        |    |             |
+|    v   |                      |                        |    v             |
+| +-----------------+           |                        | +--------------+ |
+| | Click +--------+|           |  click controlskt 6777 | | Floodlight   | |
+| |       |odin ag ||           |  click chatterskt 6778 | | controller   | |
+| |       +--------+|           |  <---------------->    | +--------------+ |
+| +-----------------+           |                        |                  |
+|    |   ^                      |                        +------------------+
+|    v   |                      |
+|  +--------+                   |       Ethernet
++--| mon0   |-------------------+
+   +--------+      
+     |                         Protocol between Odin master and agents:
+     |                           - Click controlsocket port 6777:
+     |  <- -WiFi- >  |              - ADD_LVAP
+                     |              - REMOVE_LVAP
+                     |              - QUERY_STATS
+                +-----+             - ADD_SUBSCRIPTION
+                |     |             
+                | STA |          - Odin UDP socket port 2189:
+                |     |             - RECVD_PROBE_REQUEST
+                +-----+             - PING
+                                    - PUBLISH
 ```
 
 Building/Installation
