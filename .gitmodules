@@ -1,3 +1,6 @@
 [submodule "odin-driver-patches"]
 	path = odin-driver-patches
 	url = https://github.com/lalithsuresh/odin-driver-patches
+[submodule "odin-controller"]
+	path = odin-controller
+	url = https://github.com/Wi5/odin-controller
