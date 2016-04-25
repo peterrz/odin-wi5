@@ -50,7 +50,7 @@ This is a scheme of these elements:
 | |+-------2+ +------+ +----1+| |   openflow TCP 6655    | +-----------+    |
 | |  |   ^    Openvswitch br0 | |  <----------------->   |    ^             |
 | +--|---|--------------------+ |                        |    |             |
-|    v   |                      |   odin UDP skt 2189    |    v             |
+|    v   |                      |   odin UDP skt 2819    |    v             |
 | +-----------------+           |   ----------------->   | +--------------+ |
 | | Click +--------+|           |  click controlskt 6777 | | Odin         | |
 | |       |odin ag ||           |  click chatterskt 6778 | | Master       | |
@@ -68,7 +68,7 @@ This is a scheme of these elements:
                      |              - QUERY_STATS
                 +-----+             - ADD_SUBSCRIPTION
                 |     |             
-                | STA |          - Odin UDP socket port 2189:
+                | STA |          - Odin UDP socket port 2819:
                 |     |             - RECVD_PROBE_REQUEST
                 +-----+             - PING
                                     - PUBLISH
