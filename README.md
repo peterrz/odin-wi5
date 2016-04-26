@@ -6,18 +6,20 @@ a platform for developing typical enterprise WLAN services such as
 mobility managers, and load balancers as "network applications".
 
 It was developed by Lalith Shuresh (https://github.com/lalithsuresh).
-This is a fork with some improvements.
 
+This is a fork with some improvements, being added within the H2020 Wi-5 (What to do With the Wi-Fi Wild West) Project (see http://www.wi5.eu/)
+
+You have more information in this wiki: https://github.com/Wi5/odin-wi5/wiki
 
 Requirements
 ------------
 
 For the agent/AP:
 
-- Click Modular Router with the Odin elements added
-(https://github.com/Wi5/odin-agent).
+- An OpenWrt wireless router (https://openwrt.org/)
+- Click Modular Router (https://github.com/kohler/click) with the Odin elements added (https://github.com/Wi5/odin-agent).
 - Open vSwitch (an Openflow implementation running in the AP).
-- An ath9k driver based WiFi card. You should first patch it with the
+- An ath9k driver-based Wi-Fi card. You should first patch the driver with the
 patch provided in https://github.com/lalithsuresh/odin-driver-patches
 
 - You may find some help and utilities here: https://github.com/fgg89
@@ -25,10 +27,10 @@ patch provided in https://github.com/lalithsuresh/odin-driver-patches
 Terminology
 -----------
 
-- **Odin Master** / **Controller**: the entity who controls the whole system. It
+- **Odin Controller**: The entity (a PC) who controls the whole system. It
 is an application which runs on top of Floodlight Openflow controller.
-- **Odin Agent** / **Access Point** / **AP**: It runs Click Router with Odin elements,
-and communicates with the Odin Master in two ways: through a control socket,
+- **Odin Agent** / **Access Point** / **AP**: It runs Click Modular Router with Odin elements,
+and communicates with the Odin Controller in two ways: through a control socket,
 and through Openflow protocol.
 - **STA** / **Client**: The terminals that connect to the APs.
 - **LVAP**: A light virtual Access Point, which is in charge of each STA
@@ -74,32 +76,35 @@ This is a scheme of these elements:
                                     - PUBLISH
 ```
 
-Building/Installation
----------------------
+Download and installation
+-------------------------
 
-Running Odin implies setting up the Odin master and Odin agents.
+**Odin Controller**
+
+Running Odin implies setting up the Odin Controller and Odin Agents.
 
 If you cloned Odin from the git repository, pull the individual submodules:
 
 ```
-  $: git clone http://github.com/lalithsuresh/odin
-  $: cd odin
-  $: git submodule init
-  $: git submodule update
+  $: git clone https://github.com/Wi5/odin-wi5-controller
 ```
 
-To build the master (which is built as an application on top of Floodlight),
+To build the Odin Controller (which is built as an application on top of Floodlight),
 do the following:
 
 ```
-  $: cd odin-master
+  $: cd odin-wi5-controller
   $: ant
 ```
 
 You should find `floodlight.jar` inside `target/`
 
+**Odin Agent**
+
+You have an automated script for generating the .bin file for the AP here: https://github.com/Wi5/odin-wi5/tree/master/Odin_Wi5_firmware_build
+
 Before building the agent, apply the patch in `odin-driver-patches` 
-(https://github.com/lalithsuresh/odin-driver-patches) to your
+(https://github.com/Wi5/odin-wi5/tree/master/odin-patch-driver-ath9k) to your
 Linux kernel ath9k driver code.
 
 To build the agent, copy the files in `odin-agent/src/` to your Click source's
@@ -114,21 +119,24 @@ Now build Click using your cross compiler. Don't forget to pass the
 `--enable-local` flag to Click's configure script.
 
 Generate a Click file for the agent, using your preferred values for the
-options:
+options. Use this Python script: https://github.com/Wi5/odin-wi5-agent/blob/master/agent-click-file-gen.py
 
 ```
   $: python agent-click-file-gen.py <AP_CHANNEL> <QUEUE_SIZE> \
-   <HW_ADDR> <ODIN_MASTER_IP> <ODIN_MASTER_PORT> <DEFUGFS_FILE> \
-     > agent.click
+   <MAC_ADDR_AP> <ODIN_MASTER_IP> <ODIN_MASTER_PORT> <DEFUGFS_FILE> \
+   <SSIDAGENT> <ODIN_AGENT_IP> <DEBUG_CLICK> <DEBUG_ODIN>  > agent.click
 ```
-* `AP_CHANNEL`: it must be the same where mon0 of the AP is placed
+* `AP_CHANNEL`: it must be the same where mon0 of the AP is placed. To avoid problems at init time, it MUST be the same channel specified in the /etc/config/wireless file of the AP
 * `QUEUE_SIZE`: you can use the size 50
-* `HW_ADDR`: the MAC of the wireless interface mon0 of the AP. e.g. E8-DE-27-F7-02-16
+* `MAC_ADDR_AP`: the MAC of the wireless interface mon0 of the AP. e.g. 74-F0-6E-20-D4-74
 * `ODIN_MASTER_IP` is the IP of the openflow controller where Odin master is running
 * `ODIN_MASTER_PORT` should be 2819 by default
 * `DEBUGFS_FILE` is the path of the bssid_extra file created by the ath9k patch
-         it can be e.g. /sys/kernel/debug/ieee80211/phy0/ath9k/bssid_extra'
-
+         it can be e.g. /sys/kernel/debug/ieee80211/phy0/ath9k/bssid_extra
+* `SSIDAGENT` is the name of the SSID of this Odin agent
+* `ODIN_AGENT_IP` is the IP address of the AP where this script is running (the IP used for communicating with the controller)
+* `DEBUG_CLICK`: "0" no info displayed; "1" only basic info displayed; "2" all the info displayed
+* `DEBUG_ODIN`: "0" no info displayed; "1" only basic info displayed; "2" all the info displayed; "1x" demo info displayed
 
 
 Running Odin
@@ -278,11 +286,6 @@ Instantiate a monitor device:
   $: iw phy phy0 interface add mon0 type monitor
   $: iw dev wlan0 set channel <required-channel>  # the same channel specified in agent.click
   $: ifconfig mon0 up
-```
-
-If you want the AP to create its default ESSID, in addition to Odin's one, run this command (not recommended):
-
-```
   $: ifconfig wlan0 up
 ```
 
