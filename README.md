@@ -119,24 +119,8 @@ Now build Click using your cross compiler. Don't forget to pass the
 `--enable-local` flag to Click's configure script.
 
 Generate a Click file for the agent, using your preferred values for the
-options. Use this Python script: https://github.com/Wi5/odin-wi5-agent/blob/master/agent-click-file-gen.py
-
-```
-  $: python agent-click-file-gen.py <AP_CHANNEL> <QUEUE_SIZE> \
-   <MAC_ADDR_AP> <ODIN_MASTER_IP> <ODIN_MASTER_PORT> <DEFUGFS_FILE> \
-   <SSIDAGENT> <ODIN_AGENT_IP> <DEBUG_CLICK> <DEBUG_ODIN>  > agent.click
-```
-* `AP_CHANNEL`: it must be the same where mon0 of the AP is placed. To avoid problems at init time, it MUST be the same channel specified in the /etc/config/wireless file of the AP
-* `QUEUE_SIZE`: you can use the size 50
-* `MAC_ADDR_AP`: the MAC of the wireless interface mon0 of the AP. e.g. 74-F0-6E-20-D4-74
-* `ODIN_MASTER_IP` is the IP of the openflow controller where Odin master is running
-* `ODIN_MASTER_PORT` should be 2819 by default
-* `DEBUGFS_FILE` is the path of the bssid_extra file created by the ath9k patch
-         it can be e.g. /sys/kernel/debug/ieee80211/phy0/ath9k/bssid_extra
-* `SSIDAGENT` is the name of the SSID of this Odin agent
-* `ODIN_AGENT_IP` is the IP address of the AP where this script is running (the IP used for communicating with the controller)
-* `DEBUG_CLICK`: "0" no info displayed; "1" only basic info displayed; "2" all the info displayed
-* `DEBUG_ODIN`: "0" no info displayed; "1" only basic info displayed; "2" all the info displayed; "1x" demo info displayed
+options. Use this Python script: https://github.com/Wi5/odin-wi5-agent/blob/master/agent-click-file-gen.py 
+and follow the instructions there.
 
 
 Running Odin
