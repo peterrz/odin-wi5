@@ -3,9 +3,9 @@ Odin
 
 Odin is an SDN framework programmable enterprise WLANs. It provides
 a platform for developing typical enterprise WLAN services such as
-mobility managers, and load balancers as "network applications".
+mobility management, load balancing, seamless handover, etc. as "network applications".
 
-It was developed by Lalith Shuresh (https://github.com/lalithsuresh).
+It was initially developed by Lalith Shuresh (https://github.com/lalithsuresh).
 
 This is a fork with some improvements, being added within the H2020 Wi-5 (What to do With the Wi-Fi Wild West) Project (see http://www.wi5.eu/)
 
@@ -20,7 +20,7 @@ For the agent/AP:
 - Click Modular Router (https://github.com/kohler/click) with the Odin elements added (https://github.com/Wi5/odin-agent).
 - Open vSwitch (an Openflow implementation running in the AP).
 - An ath9k driver-based Wi-Fi card. You should first patch the driver with the
-patch provided in https://github.com/lalithsuresh/odin-driver-patches
+patch provided in https://github.com/Wi5/odin-wi5/tree/master/odin-patch-driver-ath9k
 
 - You may find some help and utilities here: https://github.com/fgg89
 
