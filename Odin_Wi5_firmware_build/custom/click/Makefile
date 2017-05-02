@@ -12,8 +12,8 @@ PKG_SOURCE_VERSION:=$(PKG_REV)
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
 
 WI5_AGENT_NAME:=wi5-agent
-WI5_AGENT_VERSION:=20160404
-WI5_AGENT_REV:=e00b79fcbe8eac291be20509ff86204988e1d006
+WI5_AGENT_VERSION:=20170421
+WI5_AGENT_REV:=55e398adbd00fdd241623f71457d4085b3f2177e
 WI5_AGENT_SOURCE:=$(WI5_AGENT_NAME)-$(WI5_AGENT_VERSION).tar.gz
 WI5_AGENT_PROTO:=git
 WI5_AGENT_URL:=https://github.com/Wi5/odin-wi5-agent.git
@@ -48,7 +48,7 @@ define Build/Prepare
 	$(TAR) -C $(PKG_BUILD_DIR) -xzf $(DL_DIR)/$(WI5_AGENT_SOURCE)
 	$(CP) $(PKG_BUILD_DIR)/$(WI5_AGENT_NAME)-$(WI5_AGENT_VERSION)/src/odinagent{.cc,.hh} $(PKG_BUILD_DIR)/elements/local
 	python $(PKG_BUILD_DIR)/$(WI5_AGENT_NAME)-$(WI5_AGENT_VERSION)/$(AGENT_CLICK_GENERATOR) \
-		11 50 E8:94:F6:D9:1B:EB 192.168.1.2 2819 /sys/kernel/debug/ieee80211/phy0/ath9k/bssid_extra odin-airties 192.168.1.1 2 2 \
+		4 50 14:CC:20:AC:72:91 192.168.1.129 2819 /sys/kernel/debug/ieee80211/phy0/ath9k/bssid_extra odin-wi5-airties 192.168.1.7 0 11 12 25 0 \
 		> $(PKG_BUILD_DIR)/userlevel/agent.click
 endef
 
@@ -67,6 +67,19 @@ define Build/Configure
 		../tools/click-mkmindriver/click-mkmindriver -a -u -V \
 			-f agent.click -C ../share/click -p $(PKG_NAME) \
 			-E Discard -E Print -E ARPPrint; \
+	)
+	$(CP) ./files/click_1.patch $(PKG_BUILD_DIR)
+	(cd $(PKG_BUILD_DIR); \
+		patch < click_1.patch; \
+    	)
+	$(CP) ./files/click_2.patch $(PKG_BUILD_DIR)/include/click
+	(cd $(PKG_BUILD_DIR)/include/click/; \
+		ls; \
+		patch < click_2.patch; \
+	)
+	$(CP) ./files/click_3.patch $(PKG_BUILD_DIR)/lib
+	(cd $(PKG_BUILD_DIR)/lib; \
+		patch < click_3.patch; \
 	)
 	$(MAKE) -C $(PKG_BUILD_DIR) clean-tools
 	(cd $(PKG_BUILD_DIR); \
@@ -96,7 +109,7 @@ define Package/click/install
 	$(CP) $(PKG_BUILD_DIR)/tools/click-align/click-align $(1)/usr/bin/click-align
 	$(CP) $(PKG_BUILD_DIR)/share/click/elementmap.xml $(1)/usr/share/click/elementmap.xml
 	$(CP) $(PKG_BUILD_DIR)/userlevel/agent.click $(1)/usr/share/click/agent.click
-	$(INSTALL_BIN) ./files/start_odin.sh $(1)/usr/share/click/start_odin.sh
+	$(INSTALL_BIN) ./files/start_odin_new.sh $(1)/usr/share/click/start_odin_new.sh
 endef
 
 $(eval $(call Download,wi5-agent))
