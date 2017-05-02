@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# OpenWrt firmware build script for TP-LINK Archer C7, TL-WR1043ND, and TL-WDR4300
+# OpenWrt firmware build script for TP-LINK Archer C7, TL-WR1043ND, TL-WDR4300 and Netgear R6100
 #
 # Added features for the Horizon 2020 Wi-5 project:
 #
@@ -24,9 +24,11 @@ VERBOSE=""
 
 show_help() {
 cat << EOF
-Usage: ${0##*/} [-hv] <TLWR1043|ARCHERC7|TLWDR4300>
+Usage: ${0##*/} [-hv] <TLWR1043|ARCHERC7|TLWDR4300|nand>
 Build OpenWRT firmware with integrated Click and Open vSwitch for the
-specified wireless router.
+specified wireless router. 
+
+P.S In order to generate an OpenWRT firmware with Click for Netgear R6100, please use the nand option.
 
   -h    display this help and exit
   -v    verbose mode
@@ -51,7 +53,7 @@ parse_arguments() {
   done
   shift "$((OPTIND-1))"
   case "$@" in
-    TLWR1043 | ARCHERC7 | TLWDR4300)
+    TLWR1043 | ARCHERC7 | TLWDR4300 | nand)
       TARGET_PROFILE=$@
       ;;
     *)
@@ -61,12 +63,12 @@ parse_arguments() {
 }
 
 clean_up() {
-  rm -rf openwrt openvswitch custom/openvswitch odin-driver-patches libatomic-patch
+  rm -rf openwrt odin-driver-patches 
 }
 
 clone_openwrt() {
   if ! [ -d openwrt ]; then
-    git clone git://git.openwrt.org/14.07/openwrt.git openwrt
+    git clone git://git.openwrt.org/15.05/openwrt.git openwrt
   fi
 }
 
@@ -83,43 +85,13 @@ patch_ath9k() {
     > openwrt/package/kernel/mac80211/patches/580-ath9k-bssid-mask.patch
 }
 
-#libatomic patch is required by openvswitch
-# You have to do this, otherwise openvswitch will not compile (because of some missing dependencies with libatomic).
-# Note: You must apply a patch to /home/proyecto/openwrt/trunk/package/libs/toolchain/Makefile 
-# (in principle, it should have been http://patchwork.openwrt.org/patch/5019/, but this URL did not work
-# so we applied this other patch instead: https://gist.github.com/pichuang/7372af6d5d3bd1db5a88
-patch_libatomic() {
-  if ! [ -d libatomic-patch ]; then
-    git clone https://gist.github.com/7372af6d5d3bd1db5a88.git libatomic-patch
-  fi
-  patch -b openwrt/package/libs/toolchain/Makefile < libatomic-patch/openwrt-add-libatomic.patch
-}
-
-clone_openvswitch() {
-  if ! [ -d openvswitch ]; then
-    git clone git://github.com/ttsubo/openvswitch.git
-  fi
-}
-
-patch_openvswitch() {
-  cp -r openvswitch/openvswitch custom/openvswitch
-  sed -i.orig \
-      -e'/DEPENDS:=+kmod-stp +kmod-ipv6 +kmod-gre +kmod-lib-crc32c/s/$/ +kmod-crypto-crc32c +kmod-tun/' \
-    custom/openvswitch/Makefile
-}
-
 #add the required feeds, i.e. packages you want to make available in menuconfig
 install_custom_feeds() {
   cp openwrt/feeds.conf.default openwrt/feeds.conf
   echo "src-link custom `pwd`/custom" >> openwrt/feeds.conf
   cd openwrt
   ./scripts/feeds update -a
-  ./scripts/feeds install luci
-  ./scripts/feeds install nano
-  ./scripts/feeds install joe	
-  ./scripts/feeds update custom
-  ./scripts/feeds install -p custom click
-  ./scripts/feeds install -p custom openvswitch-common
+  ./scripts/feeds install -a 
 }
 
 # select the packages you want to be set to be compiled and installed 
@@ -128,42 +100,76 @@ install_custom_feeds() {
 #   Kernel modules / Wireless drivers / kmod-ath / Atheros wireless debugging
 #   set the flag CONFIG_PACKAGE_ATH_DEBUG=y in the .conf file
 configure_openwrt() {
+  if test "$TARGET_PROFILE" == "nand" 
+  then			
   make defconfig
   sed -i.orig \
       -e 's/\(CONFIG_TARGET_ar71xx_generic_Default\)=y/# \1 is not set/' \
-      -e "s/# \(CONFIG_TARGET_ar71xx_generic_$TARGET_PROFILE\) is not set/\1=y/" \
+      -e "s/# \(CONFIG_TARGET_ar71xx_$TARGET_PROFILE\) is not set/\1=y/" \
       -e 's/# \(CONFIG_PACKAGE_click\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_openvswitch-common\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_openvswitch-ipsec\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_openvswitch-switch\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_openvswitch\) is not set/\1=y/' \
       -e 's/# \(CONFIG_DEVEL\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_wireless-tools\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_libuci-lua\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_libiwinfo-lua\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_libubus-lua\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_luci-base\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_luci-lib-nixio\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_luci-theme-bootstrap\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_luci-mod-admin-full\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_uhttpd\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_uhttpd-mod-ubus\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_rpcd\) is not set/\1=y/' \
-      -e 's/# \(CONFIG_PACKAGE_lua\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_luci\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_joe\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_nano\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_openvpn-nossl\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-openvswitch\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-tun\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_kmod-usb-storage\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_kmod-fs-ext4\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_kmod-fs-msdos\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_kmod-fs-vfat\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_kmod-nls-cp437\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_kmod-nls-iso8859-13\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-crypto-crc32c\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-lib-crc32c\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_tcpdump\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_hostapd\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_hostapd-utils\) is not set/\1=y/' \
       -e 's/# \(CONFIG_PACKAGE_ATH_DEBUG\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-ath\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-ath9k-htc\) is not set/\1=y/' \
+      -e 's/\(CONFIG_PACKAGE_odhcp6c\)=y/# \1 is not set/' \
+      -e 's/\(CONFIG_PACKAGE_odhcpd\)=y/# \1 is not set/' \
     .config
   make defconfig
+  else
+  make defconfig
+  sed -i.orig \
+      -e 's/\(CONFIG_TARGET_ar71xx_generic_Default\)=y/# \1 is not set/' \
+      -e "s/# \(CONFIG_TARGET_ar71xx_generic_$TARGET_PROFILE\) is not set/\1=y/" \
+      -e 's/# \(CONFIG_PACKAGE_click\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_openvswitch\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_DEVEL\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_wireless-tools\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_luci\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_joe\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_nano\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_openvpn-nossl\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-openvswitch\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-tun\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-usb-storage\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-fs-ext4\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-fs-msdos\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-fs-vfat\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-nls-cp437\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-nls-iso8859-13\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-crypto-crc32c\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-lib-crc32c\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_tcpdump\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_hostapd\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_hostapd-utils\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_ATH_DEBUG\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-ath\) is not set/\1=y/' \
+      -e 's/# \(CONFIG_PACKAGE_kmod-ath9k-htc\) is not set/\1=y/' \
+      -e 's/\(CONFIG_PACKAGE_odhcp6c\)=y/# \1 is not set/' \
+      -e 's/\(CONFIG_PACKAGE_odhcpd\)=y/# \1 is not set/' \
+    .config
+  make defconfig	
+  fi
+  
+ 
 
 #Remove the "CONFIG_USE_MIPS16=y" option. Uncheck the MIPS16 option:
 #	Advanced config. options/ Target opt./ Build packages with MIPS16 instructions
@@ -173,10 +179,11 @@ configure_openwrt() {
       -e 's/\(CONFIG_USE_MIPS16\)=y/# \1 is not set/' \
     .config
   make defconfig
-}
 
-configure_kernel() {
-  echo "CONFIG_NET_SCH_HTB=y" >> target/linux/ar71xx/config-3.10
+  sed -i.orig \
+      -e 's/# \(CONFIG_PACKAGE_openvswitch-ipsec\) is not set/\1=y/' \
+    .config
+  make defconfig
 }
 
 build() {
@@ -187,16 +194,6 @@ parse_arguments "$@"
 clean_up
 clone_openwrt
 patch_ath9k
-
-# Apply libatomic patch (required by openvswitch)  
-# You have to do this, otherwise openvswitch will not compile (because of some missing dependencies with libatomic).
-#Note: You must apply a patch to /home/proyecto/openwrt/trunk/package/libs/toolchain/Makefile 
-patch_libatomic
-
-
-clone_openvswitch
-patch_openvswitch
 install_custom_feeds
 configure_openwrt
-configure_kernel
-build
+#build
